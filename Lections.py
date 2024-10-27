@@ -1,5 +1,6 @@
 import docx
-import pyscreenshot
+# import pyscreenshot
+from PIL import ImageGrab
 import pyautogui
 from pynput import mouse
 import os
@@ -26,25 +27,28 @@ def show_info_dialog():
     root = tk.Tk()
     root.title("Информация")
 
-    # Настройка размера окна и его положения
-    width = 450  # Ширина окна
-    height = 200  # Высота окна
-    x_pos = 200   # Положение по горизонтали
-    y_pos = 400   # Положение по вертикали
+    # Получите размеры экрана
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    
+    # Настройка размеров и положения окна
+    width = int(screen_width * 0.25)   # 25% от ширины экрана
+    height = int(screen_height * 0.2)  # 20% от высоты экрана
+    x_pos = int((screen_width - width) / 9)   # Центрирование по горизонтали
+    y_pos = int((screen_height - height) / 2)  # Центрирование по вертикали
+    
     root.geometry(f"{width}x{height}+{x_pos}+{y_pos}")
 
-    # Создаем сообщение об инструкции
     message = ("Данный шаг программы позволяет сделать скриншот области экрана \n"
                "на основе двух кликов мыши.\n"
                "После нажатия кнопки 'Понятно' программа ожидает 2 клика: \n"
                "1. Верхняя левая часть слайда.\n"
                "2. Нижняя правая часть слайда.\n"
                "После этого программа продолжит выполнение.")
-
+    
     label = tk.Label(root, text=message, padx=20, pady=20)
     label.pack()
 
-    # Кнопка для закрытия окна
     button = tk.Button(root, text="Понятно", command=root.destroy)
     button.pack(pady=10)
 
@@ -71,13 +75,23 @@ print(x2, y2)
 def get_slide_count():
     root = tk.Tk()
     root.title("Ввод количества слайдов")
-    root.geometry("450x200+200+400")  # Установка размеров и положения окна
+    
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    
+    width = int(screen_width * 0.25)
+    height = int(screen_height * 0.2)
+    x_pos = int((screen_width - width) / 9)
+    y_pos = int((screen_height - height) / 2)
+
+    root.geometry(f"{width}x{height}+{x_pos}+{y_pos}")
     root.attributes("-topmost", True)
 
     slide_count = None
+
     label = tk.Label(root, text='''Убедитесь, что лекция в самом начале\nОсобенно проверьте первый слайд\nПервый слайд должен перелистываться за 1 клик в центр\nПосле нажатия кнопки "Подтвердить" программа продолжит свою работу\nВведите количество слайдов:''')
     label.pack(pady=10)
-
+    print('window showed')
     entry = tk.Entry(root)
     entry.pack(pady=5)
     entry.focus_force()
@@ -86,6 +100,7 @@ def get_slide_count():
         nonlocal slide_count
         try:
             slide_count = int(entry.get())
+            print('got number')
             if slide_count <= 0:
                 raise ValueError("Число должно быть положительным.")
             root.destroy()
@@ -102,16 +117,22 @@ def get_slide_count():
     return slide_count if slide_count is not None and slide_count > 0 else None
 
 n = get_slide_count()
+print(f'got slide count - {n}')
 
 if n is None or n <= 0:
     print("Ошибка: введено некорректное число слайдов.")
 else:
     for i in range(n):
-        screenshot_parametres = pyscreenshot.grab(bbox=(x1, y1, x2, y2))
+        screenshot_parametres = ImageGrab.grab(bbox=(x1, y1, x2, y2))
+        print('screenshot parametred')
         screenshot_parametres.save(r'C:screenshot.png')
+        print('screenshot saved')
         doc.add_picture(r'C:screenshot.png', width=docx.shared.Cm(14.99))
-        pyautogui.click(x=1145, y=634, interval=0.2)
+        print('doc added')
+        pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.15)
+        print('clicked')
         os.remove(r'C:screenshot.png')
+        print('scr removed')
 
 def save_document(doc):
     root = tk.Tk()
@@ -121,8 +142,7 @@ def save_document(doc):
         title="Сохранить как",
         defaultextension=".docx",
         filetypes=[("Microsoft Word Documents", "*.docx"),
-                   ("PDF Documents", "*.pdf"),
-                   ("All files", "*.*")]
+                   ("PDF Documents", "*.pdf")]
     )
 
     print(f"Выбранный путь к файлу: {file_path}")

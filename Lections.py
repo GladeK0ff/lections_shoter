@@ -26,7 +26,7 @@ class InfoDialog(QtWidgets.QDialog):
     def __init__(self, width_ratio=0.25, height_ratio=0.2, x_offset_ratio=0.1, y_offset_ratio=0.5):
         super().__init__()
         self.setWindowTitle("Информация")
-        
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)  # Установка флага
         screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
         width = int(screen_geometry.width() * width_ratio)
         height = int(screen_geometry.height() * height_ratio)
@@ -60,7 +60,9 @@ def get_slide_count():
     window = QtWidgets.QDialog()
     
     window.setWindowTitle("Ввод количества слайдов")
+    window.setWindowFlags(window.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)  # Установка флага
 
+    
     screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
     width_ratio = 0.25
     height_ratio = 0.2

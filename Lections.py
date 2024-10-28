@@ -185,7 +185,7 @@ if __name__ == "__main__":
             print('screenshot saved')
             doc.add_picture(r'C:screenshot.png', width=docx.shared.Cm(14.99))
             print('doc added')
-            pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.15)
+            pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.3)
             print('clicked')
             os.remove(r'C:screenshot.png')
             print('screenshot removed')

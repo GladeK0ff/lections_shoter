@@ -1,13 +1,12 @@
 import docx
-# import pyscreenshot
 from PIL import ImageGrab
 import pyautogui
 from pynput import mouse
 import os
-import tkinter as tk
-from tkinter import filedialog, messagebox
+import sys
 import win32com.client
 import time
+from PyQt5 import QtWidgets, QtCore
 
 doc = docx.Document()
 
@@ -17,139 +16,107 @@ class ClickPositions:
 
     def on_click(self, x, y, _button, pressed):
         if pressed:
-            # Сохраняем координаты
+            # Save coordinates
             self.positions.append((x, y))
-            # Останавливаем слушатель после захвата двух позиций
+            # Stop listener after capturing two positions
             if len(self.positions) == 2:
                 return False
 
-def show_info_dialog():
-    root = tk.Tk()
-    root.title("Информация")
+class InfoDialog(QtWidgets.QDialog):
+    def __init__(self, width_ratio=0.25, height_ratio=0.2, x_offset_ratio=0.1, y_offset_ratio=0.5):
+        super().__init__()
+        self.setWindowTitle("Информация")
+        
+        screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
+        width = int(screen_geometry.width() * width_ratio)
+        height = int(screen_geometry.height() * height_ratio)
 
-    # Получите размеры экрана
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    
-    # Настройка размеров и положения окна
-    width = int(screen_width * 0.25)   # 25% от ширины экрана
-    height = int(screen_height * 0.2)  # 20% от высоты экрана
-    x_pos = int((screen_width - width) / 9)   # Центрирование по горизонтали
-    y_pos = int((screen_height - height) / 2)  # Центрирование по вертикали
-    
-    root.geometry(f"{width}x{height}+{x_pos}+{y_pos}")
+        # Calculate position based on offset ratios
+        x_pos = int(screen_geometry.width() * x_offset_ratio)
+        y_pos = int(screen_geometry.height() * y_offset_ratio)
 
-    message = ("Данный шаг программы позволяет сделать скриншот области экрана \n"
-               "на основе двух кликов мыши.\n"
-               "После нажатия кнопки 'Понятно' программа ожидает 2 клика: \n"
-               "1. Верхняя левая часть слайда.\n"
-               "2. Нижняя правая часть слайда.\n"
-               "После этого программа продолжит выполнение.")
-    
-    label = tk.Label(root, text=message, padx=20, pady=20)
-    label.pack()
+        self.setGeometry(x_pos, y_pos, width, height)
 
-    button = tk.Button(root, text="Понятно", command=root.destroy)
-    button.pack(pady=10)
+        layout = QtWidgets.QVBoxLayout()
 
-    root.mainloop()
+        message = ("Данный шаг программы позволяет сделать скриншот области экрана \n"
+                   "на основе двух кликов мыши.\n"
+                   "После нажатия кнопки 'Понятно' программа ожидает 2 клика: \n"
+                   "1. Верхняя левая часть слайда.\n"
+                   "2. Нижняя правая часть слайда.\n"
+                   "После этого программа продолжит выполнение.")
+        
+        label = QtWidgets.QLabel(message)
+        layout.addWidget(label)
 
-# Показать окно с информацией пользователю
-show_info_dialog()
-
-# Создаем экземпляр класса для захвата кликов
-click_positions = ClickPositions()
-
-# Установка слушателя
-with mouse.Listener(on_click=click_positions.on_click) as listener:
-    listener.join()
-
-# Получаем позиции после остановки слушателя
-pos1, pos2 = click_positions.positions
-x1, y1 = pos1
-x2, y2 = pos2
-
-print(x1, y1)
-print(x2, y2)
+        button = QtWidgets.QPushButton("Понятно", self)
+        button.clicked.connect(self.accept)
+        layout.addWidget(button)
+        
+        self.setLayout(layout)
+        self.exec_()
 
 def get_slide_count():
-    root = tk.Tk()
-    root.title("Ввод количества слайдов")
+    window = QtWidgets.QDialog()
     
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    window.setWindowTitle("Ввод количества слайдов")
+
+    screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
+    width_ratio = 0.25
+    height_ratio = 0.2
+    x_offset_ratio = 0.1
+    y_offset_ratio = 0.5
+
+    width = int(screen_geometry.width() * width_ratio)
+    height = int(screen_geometry.height() * height_ratio)
+
+    # Calculate position based on offset ratios
+    x_pos = int(screen_geometry.width() * x_offset_ratio)
+    y_pos = int(screen_geometry.height() * y_offset_ratio)
+
+
+    window.setGeometry(x_pos, y_pos, width, height)
+    layout = QtWidgets.QVBoxLayout()
+
+    label = QtWidgets.QLabel('''Убедитесь, что лекция в самом начале\n
+Особенно проверьте первый слайд\n
+Первый слайд должен перелистываться за 1 клик в центр\n
+После нажатия кнопки "Подтвердить" программа продолжит свою работу\n
+Введите количество слайдов:''')
+    layout.addWidget(label)
     
-    width = int(screen_width * 0.25)
-    height = int(screen_height * 0.2)
-    x_pos = int((screen_width - width) / 9)
-    y_pos = int((screen_height - height) / 2)
+    spin_box = QtWidgets.QSpinBox()
+    spin_box.setMinimum(1)
+    layout.addWidget(spin_box)
+    
+    submit_btn = QtWidgets.QPushButton("Подтвердить")
+    layout.addWidget(submit_btn)
+    
+    window.setLayout(layout)
 
-    root.geometry(f"{width}x{height}+{x_pos}+{y_pos}")
-    root.attributes("-topmost", True)
+    def on_submit():
+        window.close()
 
-    slide_count = None
+    submit_btn.clicked.connect(on_submit)
 
-    label = tk.Label(root, text='''Убедитесь, что лекция в самом начале\nОсобенно проверьте первый слайд\nПервый слайд должен перелистываться за 1 клик в центр\nПосле нажатия кнопки "Подтвердить" программа продолжит свою работу\nВведите количество слайдов:''')
-    label.pack(pady=10)
-    print('window showed')
-    entry = tk.Entry(root)
-    entry.pack(pady=5)
-    entry.focus_force()
-
-    def on_submit(event=None):
-        nonlocal slide_count
-        try:
-            slide_count = int(entry.get())
-            print('got number')
-            if slide_count <= 0:
-                raise ValueError("Число должно быть положительным.")
-            root.destroy()
-        except ValueError:
-            messagebox.showerror("Ошибка", "Пожалуйста, введите корректное число слайдов.")
-
-    submit_btn = tk.Button(root, text="Подтвердить", command=on_submit)
-    entry.bind("<Return>", on_submit)
-    submit_btn.pack(pady=10)
-
-    root.deiconify()
-    root.mainloop()
-
-    return slide_count if slide_count is not None and slide_count > 0 else None
-
-n = get_slide_count()
-print(f'got slide count - {n}')
-
-if n is None or n <= 0:
-    print("Ошибка: введено некорректное число слайдов.")
-else:
-    for i in range(n):
-        screenshot_parametres = ImageGrab.grab(bbox=(x1, y1, x2, y2))
-        print('screenshot parametred')
-        screenshot_parametres.save(r'C:screenshot.png')
-        print('screenshot saved')
-        doc.add_picture(r'C:screenshot.png', width=docx.shared.Cm(14.99))
-        print('doc added')
-        pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.15)
-        print('clicked')
-        os.remove(r'C:screenshot.png')
-        print('scr removed')
+    window.exec_()
+    
+    return spin_box.value()
 
 def save_document(doc):
-    root = tk.Tk()
-    root.withdraw()  # Скрытие основного окна
-
-    file_path = filedialog.asksaveasfilename(
-        title="Сохранить как",
-        defaultextension=".docx",
-        filetypes=[("Microsoft Word Documents", "*.docx"),
-                   ("PDF Documents", "*.pdf")]
+    app = QtWidgets.QApplication(sys.argv)
+    file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+        None,
+        "Сохранить как",
+        "",
+        "Microsoft Word Documents (*.docx);;PDF Documents (*.pdf)"
     )
 
     print(f"Выбранный путь к файлу: {file_path}")
 
-    if file_path:  # Проверяем, выбрали ли файл
+    if file_path:
         if file_path.lower().endswith('.pdf'):
-            docx_temp_path = os.path.normpath(os.path.splitext(file_path)[0] + ".docx")
+            docx_temp_path = os.path.splitext(file_path)[0] + ".docx"
             doc.save(docx_temp_path)
 
             if not os.path.exists(docx_temp_path):
@@ -184,4 +151,43 @@ def save_document(doc):
     else:
         print("Сохранение отменено")
 
-save_document(doc)
+# Main Execution
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    
+    # Show the info dialog
+    InfoDialog()
+
+    # Create instance for capturing clicks
+    click_positions = ClickPositions()
+
+    # Start the mouse listener
+    with mouse.Listener(on_click=click_positions.on_click) as listener:
+        listener.join()
+
+    # Get positions after stopping the listener
+    pos1, pos2 = click_positions.positions
+    x1, y1 = pos1
+    x2, y2 = pos2
+    print(x1, y1, x2, y2)
+
+    # Get slide count from user
+    n = get_slide_count()
+    print(f'got slide count - {n}')
+
+    if n is None or n <= 0:
+        print("Ошибка: введено некорректное число слайдов.")
+    else:
+        for i in range(n):
+            screenshot_param = ImageGrab.grab(bbox=(x1, y1, x2, y2))
+            print('screenshot parametred')
+            screenshot_param.save(r'C:screenshot.png')
+            print('screenshot saved')
+            doc.add_picture(r'C:screenshot.png', width=docx.shared.Cm(14.99))
+            print('doc added')
+            pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.15)
+            print('clicked')
+            os.remove(r'C:screenshot.png')
+            print('screenshot removed')
+
+    save_document(doc)

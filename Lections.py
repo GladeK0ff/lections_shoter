@@ -19,13 +19,138 @@ class ClickPositions:
             # Save coordinates
             self.positions.append((x, y))
             # Stop listener after capturing two positions
-            if len(self.positions) == 2:
+            if len(self.positions) == 3:
                 return False
+
+class AnimationDialog(QtWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Слайды с анимацией")
+
+        # Установка флага, чтобы окно всегда было сверху
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+
+        # Устанавливаем расположение окна
+        screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
+        width_ratio = 0.3
+        height_ratio = 0.2
+        x_offset_ratio = 0.01
+        y_offset_ratio = 0.3
+
+        width = int(screen_geometry.width() * width_ratio)
+        height = int(screen_geometry.height() * height_ratio)
+
+        # Calculate position based on offset ratios
+        x_pos = int(screen_geometry.width() * x_offset_ratio)
+        y_pos = int(screen_geometry.height() * y_offset_ratio)
+
+
+        self.setGeometry(x_pos, y_pos, width, height)
+
+        self.layout = QtWidgets.QVBoxLayout()  # Сохраняем ссылку на layout
+
+        # Информационное сообщение
+        self.info_label = QtWidgets.QLabel("""Убедитесь в том, что в лекции нет слайдов с анимацией\n
+Программа использует время клика, равное 0,3 секунды\n
+Если в лекции присутствует анимация, замедляющая полный показ слайда, это может сказаться на конечном результате\n
+Наличие анимации вы можете заподозрить по времени, указанном в правом нижнем углу презентации\n
+Если презентации нет, то нажмите 'Подтвердить' в данном окне, программа продолжит свою работу\n
+Если презентация есть поставьте галочку в вопросе 'Есть ли в презентации слайды для анимации?'\n
+Быстро вручную пролистайте лекцию и определите номера слайдов, а также максимальное время действия анимации на одном слайде\n
+В диалоговом окнах соответственно укажите номера слайдов через запятую (x1, x2,...)\n
+и максимальное время анимации на одном слайде в секундах целым числом (огруглять в большую сторону)\n
+После этого нажмите "Продолжить"                         
+Введите пары: слайд и время""")
+        self.layout.addWidget(self.info_label)
+
+        # Чекбокс для анимации
+        self.animation_checkbox = QtWidgets.QCheckBox("Есть ли анимация в лекции?")
+        self.layout.addWidget(self.animation_checkbox)
+
+        # Поле для ввода постоянного значения
+        self.constant_value_input = QtWidgets.QLineEdit(self)
+        self.constant_value_input.setPlaceholderText("Введите максимальное время анимации на 1 слайде (в секундах)")
+        self.layout.addWidget(self.constant_value_input)
+
+        # Поле для ввода нескольких значений
+        self.values_input = QtWidgets.QLineEdit(self)
+        self.values_input.setPlaceholderText("Введите номера слайдов с анимацией через запятую (x1, x2, ...)")
+        self.layout.addWidget(self.values_input)
+
+        # Кнопка подтверждения
+        self.confirm_button = QtWidgets.QPushButton("Подтвердить")
+        self.confirm_button.clicked.connect(self.on_confirm)
+        self.layout.addWidget(self.confirm_button)
+
+        self.setLayout(self.layout)
+
+        # Скрываем поля для ввода, если анимации нет
+        self.update_input_fields()
+
+        # Подключаем сигнал чекбокса
+        self.animation_checkbox.stateChanged.connect(self.update_input_fields)
+
+    def update_input_fields(self):
+        # Включаем или отключаем поля для ввода в зависимости от состояния чекбокса
+        is_checked = self.animation_checkbox.isChecked()
+        self.constant_value_input.setEnabled(is_checked)
+        self.values_input.setEnabled(is_checked)
+
+        if not is_checked:
+            # Если анимации нет, очищаем поля ввода
+            self.constant_value_input.clear()
+            self.values_input.clear()
+
+
+    def on_confirm(self):
+        # Проверяем, есть ли анимация
+        if not self.animation_checkbox.isChecked():
+            self.accept()  # Если анимации нет, просто закрываем окно
+            return
+
+        # Получаем значение из первого поля ввода
+        constant_value = self.constant_value_input.text().strip()
+        
+        # Проверяем, является ли постоянное значение целым числом
+        if not constant_value.isdigit():
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пожалуйста, введите корректное постоянное числовое значение.")
+            return
+
+        # Получаем значения из второго поля ввода
+        values_input = self.values_input.text().strip()
+
+        # Разделяем значения по запятой и проверяем
+        values = values_input.split(',')
+        filtered_values = [v.strip() for v in values if v.strip().isdigit()]
+
+        if not filtered_values:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Пожалуйста, введите хотя бы одно целое положительное число.")
+            return
+
+        # Формируем словарь
+        data = {int(val): int(constant_value) for val in filtered_values}
+
+        # Выводим результат в консоль или используйте его как вам нужно
+        print(data)
+        self.accept()  # Закрываем окно
+        return(data)
+        
+
+    
+    def closeEvent(self, event):
+        """Обработка закрытия окна"""
+        print("Программа закрыта пользователем.")  # Вывод сообщения в консоль (по желанию)
+        QtWidgets.QApplication.quit()  # Закрываем всю программу
+
+
+          
 
 class InfoDialog(QtWidgets.QDialog):
     def __init__(self, width_ratio=0.25, height_ratio=0.2, x_offset_ratio=0.1, y_offset_ratio=0.5):
         super().__init__()
         self.setWindowTitle("Информация")
+
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         
         screen_geometry = QtWidgets.QDesktopWidget().screenGeometry()
         width = int(screen_geometry.width() * width_ratio)
@@ -41,9 +166,10 @@ class InfoDialog(QtWidgets.QDialog):
 
         message = ("Данный шаг программы позволяет сделать скриншот области экрана \n"
                    "на основе двух кликов мыши.\n"
-                   "После нажатия кнопки 'Понятно' программа ожидает 2 клика: \n"
+                   "После нажатия кнопки 'Понятно' программа ожидает 3 клика: \n"
                    "1. Верхняя левая часть слайда.\n"
                    "2. Нижняя правая часть слайда.\n"
+                   "3. Кнопка перелистывания слайда слева в углу презентации\n"
                    "После этого программа продолжит выполнение.")
         
         label = QtWidgets.QLabel(message)
@@ -58,6 +184,8 @@ class InfoDialog(QtWidgets.QDialog):
 
 def get_slide_count():
     window = QtWidgets.QDialog()
+
+    window.setWindowFlags(window.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
     
     window.setWindowTitle("Ввод количества слайдов")
 
@@ -79,9 +207,8 @@ def get_slide_count():
     layout = QtWidgets.QVBoxLayout()
 
     label = QtWidgets.QLabel('''Убедитесь, что лекция в самом начале\n
-Особенно проверьте первый слайд\n
-Первый слайд должен перелистываться за 1 клик в центр\n
-После нажатия кнопки "Подтвердить" программа продолжит свою работу\n
+Программа требует на вход количество слайдов(целое положительное число)\n
+После нажатия кнопки "Подтвердить" она продолжит свою работу\n
 Введите количество слайдов:''')
     layout.addWidget(label)
     
@@ -155,6 +282,16 @@ def save_document(doc):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     
+    # Show the animation dialog first
+    animation_dialog = AnimationDialog()
+    if animation_dialog.exec_() == QtWidgets.QDialog.Accepted:
+        slide_data = animation_dialog.on_confirm()
+
+        if slide_data is not None:
+            print("Полученные данные слайдов:", slide_data)
+        else:
+            print("Слайды для анимации не указаны.")  # Сообщение, если слайды не указаны
+
     # Show the info dialog
     InfoDialog()
 
@@ -166,10 +303,11 @@ if __name__ == "__main__":
         listener.join()
 
     # Get positions after stopping the listener
-    pos1, pos2 = click_positions.positions
+    pos1, pos2, pos3 = click_positions.positions
     x1, y1 = pos1
     x2, y2 = pos2
-    print(x1, y1, x2, y2)
+    x3, y3 = pos3
+    print(x1, y1, x2, y2, x3, y3)
 
     # Get slide count from user
     n = get_slide_count()
@@ -178,16 +316,25 @@ if __name__ == "__main__":
     if n is None or n <= 0:
         print("Ошибка: введено некорректное число слайдов.")
     else:
-        for i in range(n):
+        print(f'словарь - {type(slide_data)}')
+        for i in range(1, n+1):
             screenshot_param = ImageGrab.grab(bbox=(x1, y1, x2, y2))
-            print('screenshot parametred')
+            print(f'screenshot {i} parametred')
             screenshot_param.save(r'C:screenshot.png')
-            print('screenshot saved')
+            print(f'screenshot {i} saved')
             doc.add_picture(r'C:screenshot.png', width=docx.shared.Cm(14.99))
-            print('doc added')
-            pyautogui.click(x=(x1+x2)/2, y=(y1+y2)/2, interval=0.3)
-            print('clicked')
+            print(f'screenshot {i} added to doc')
+            if slide_data == None:
+                pyautogui.click(x3, y3, interval=0.3)
+                print('clicked for 0.3 sec')
+            else:
+                if (i+1) in slide_data:
+                    pyautogui.click(x3, y3, interval=int(slide_data[i+1]))
+                    print(f'clicked for {slide_data[i+1]} sec')
+                else:
+                    pyautogui.click(x3, y3, interval=0.3)
+                    print('clicked for 0.3 sec')
             os.remove(r'C:screenshot.png')
-            print('screenshot removed')
+            print(f'screenshot {i} removed')
 
     save_document(doc)

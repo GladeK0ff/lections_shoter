@@ -1,4 +1,4 @@
-__pycache__
 .gitignore
+__pycache__
 app/logs/logs
 release

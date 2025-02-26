@@ -1,16 +1,20 @@
 import logging
+from pathlib import Path
 
-# Создаем логгер
-logger = logging.getLogger("PresentationAppLogger")
-logger.setLevel(logging.INFO)  # Устанавливаем минимальный уровень логирования
 
-# Создаем обработчик для вывода в консоль
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR.mkdir(exist_ok=True, parents=True)
+LOG_FILE = LOG_DIR / "app.log"
 
-# Устанавливаем формат сообщений
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(formatter)
 
-# Добавляем обработчик к логгеру
-logger.addHandler(console_handler)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M",
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)

@@ -90,20 +90,26 @@
 
 ## Скриншоты
 
-![Главная форма](screenshots/question_screen.png)
 *Выбор режима работы*
 
-![Режим с анимацией](screenshots/animation_dialog.png)
+![Главная форма](screenshots/question_screen.png)
+
+
 *Информационное окно в режиме с анимацией*
 
-![Режим с анимацией](screenshots/animation_capture.png)
+![Режим с анимацией](screenshots/animation_dialog.png)
+
 *Информационное окно с подсказками*
 
-![Режим без анимации](screenshots/no_animation_dialog.png)
+![Режим с анимацией](screenshots/animation_capture.png)
+
 *Информационное окно в режиме без анимации*
 
-![Режим без анимации](screenshots/slide_count.png)
+![Режим без анимации](screenshots/no_animation_dialog.png)
+
 *Настройка количества слайдов в режиме без анимации*
+
+![Режим без анимации](screenshots/slide_count.png)
 
 ---
 

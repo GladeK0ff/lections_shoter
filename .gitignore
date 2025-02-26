@@ -1,4 +1,2 @@
-build/
-checker/
-Lections.spec
-release.rar
+__pycache__
+.gitignore

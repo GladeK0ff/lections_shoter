@@ -31,7 +31,7 @@ jobs:
 
       - name: Build EXE file
         run: |
-          pyinstaller --onefile --name=lections_shoter --paths=app app/main.py 
+          pyinstaller lections_shoter.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

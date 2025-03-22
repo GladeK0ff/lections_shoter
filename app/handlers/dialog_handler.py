@@ -6,7 +6,9 @@ class InfoDialog(QtWidgets.QDialog):
     def __init__(self, message, show_button=True, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Инструкция")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(
+            self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint
+            )
 
         screen_geometry = QtWidgets.QApplication.primaryScreen().geometry()
         width = int(screen_geometry.width() * 0.3)
@@ -33,7 +35,9 @@ class SlideCountDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Количество слайдов")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(
+            self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint
+            )
 
         screen_geometry = QtWidgets.QApplication.primaryScreen().geometry()
         width = int(screen_geometry.width() * 0.3)
@@ -46,10 +50,10 @@ class SlideCountDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout()
 
         label = QtWidgets.QLabel('''
-                                 Убедитесь, что вы в начале презентации\n
-                                 После нажатия кнопки "Готово" программа начнет свою работу\n
-                                 Введите количество слайдов:
-                                 ''')
+            Убедитесь, что вы в начале презентации\n
+            После нажатия кнопки "Готово" программа начнет свою работу\n
+            Введите количество слайдов:
+            ''')
 
         layout.addWidget(label)
 
@@ -69,11 +73,14 @@ class SlideCountDialog(QtWidgets.QDialog):
 
 
 class SaveFileDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(
+            self, parent=None
+            ):
         super().__init__(parent)
         self.setWindowTitle("Сохранить как")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
-
+        self.setWindowFlags(
+            self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint
+            )
         layout = QtWidgets.QVBoxLayout()
 
         # Поле для ввода пути
@@ -111,11 +118,15 @@ class SaveFileDialog(QtWidgets.QDialog):
         return self.file_path_edit.text()
 
 
-class QuestionDialog(QtWidgets.QDialog):
+class QuestionDialog(
+        QtWidgets.QDialog
+        ):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Анимация в презентации?")
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(
+            self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint
+            )
 
         screen_geometry = QtWidgets.QApplication.primaryScreen().geometry()
         width = int(screen_geometry.width() * 0.3)

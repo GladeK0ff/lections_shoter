@@ -1,6 +1,4 @@
 # click_handler.py
-from pynput import mouse
-
 
 class ClickHandler:
     def __init__(self, mode="animation"):

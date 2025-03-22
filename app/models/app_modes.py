@@ -1,6 +1,7 @@
 # app_modes.py
 from PyQt5 import QtWidgets, QtCore
-from handlers.dialog_handler import InfoDialog, SaveFileDialog, SlideCountDialog
+from handlers.dialog_handler import \
+    InfoDialog, SaveFileDialog, SlideCountDialog
 from handlers.document_handler import DocumentHandler
 from handlers.click_handler import ClickHandler
 import keyboard
@@ -65,7 +66,9 @@ class AnimationApp(QtCore.QObject):
 
         self.show_info_dialog()
 
-        capture_thread = threading.Thread(target=self.capture_loop, args=(x1, y1, x2, y2), daemon=True)
+        capture_thread = threading.Thread(
+            target=self.capture_loop, args=(x1, y1, x2, y2), daemon=True
+            )
         capture_thread.start()
 
         while not self.stop_app:
@@ -80,23 +83,33 @@ class AnimationApp(QtCore.QObject):
                 "- Нажмите 'S', чтобы сохранить файл.\n"
                 "- Нажмите 'Q', чтобы выйти из программы."
             )
-            self.info_dialog = InfoDialog(info_message + "\n\n" + self.screenshot_message, show_button=False)
+            self.info_dialog = InfoDialog(
+                info_message + "\n\n" + self.screenshot_message,
+                show_button=False
+            )
             self.info_dialog.show()
 
     def capture_loop(self, x1, y1, x2, y2):
         while not self.stop_app:
             if keyboard.is_pressed('e'):
-                screenshot = ImageGrab.grab(bbox=(x1, y1, x2, y2))
-                screenshot_path = os.path.join(tempfile.gettempdir(), "temp.png")
+                screenshot = ImageGrab.grab(
+                    bbox=(x1, y1, x2, y2)
+                    )
+                screenshot_path = os.path.join(
+                    tempfile.gettempdir(), "temp.png"
+                    )
                 screenshot.save(screenshot_path)
-
-                self.screenshot_signal.emit(screenshot_path)
-
+                self.screenshot_signal.emit(
+                    screenshot_path
+                    )
                 self.screenshot_count += 1
-                self.screenshot_message = f"Скриншот {self.screenshot_count} сделан"
+                self.screenshot_message = \
+                    f"Скриншот {self.screenshot_count} сделан"
                 if self.info_dialog:
-                    current_text = self.info_dialog.label.text().split("\n\n")[0]
-                    updated_text = f"{current_text}\n\n{self.screenshot_message}"
+                    current_text = \
+                        self.info_dialog.label.text().split("\n\n")[0]
+                    updated_text = \
+                        f"{current_text}\n\n{self.screenshot_message}"
                     self.info_dialog.label.setText(updated_text)
 
                 logger.info(f"Сделан скриншот {self.screenshot_count}")
@@ -105,9 +118,7 @@ class AnimationApp(QtCore.QObject):
                 logger.info("Нажата клавиша 'S'. Начинаем сохранение файла.")
                 self.save_signal.emit()
                 break
-
             time.sleep(0.01)
-
 
     @QtCore.pyqtSlot(str)
     def add_screenshot_to_doc(self, screenshot_path):
@@ -122,9 +133,12 @@ class AnimationApp(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def save_and_exit(self):
-        """Сохраняет документ и завершает программу."""
+        """
+        Сохраняет документ и завершает программу.
+        """
         save_dialog = SaveFileDialog()
-        result = save_dialog.exec_()  # Показываем диалоговое окно и проверяем результат
+        # Показываем диалоговое окно и проверяем результат
+        result = save_dialog.exec_()
         if result:  # Если пользователь нажал "Сохранить"
             file_path = save_dialog.get_save_file_path()
             if file_path:
@@ -158,7 +172,7 @@ class NoAnimationApp:
         logger.info("Программа завершена по нажатию клавиши 'Q'.")
 
     def start_capture(self):
-    # Показываем диалоговое окно с инструкциями перед началом захвата
+        # Показываем диалоговое окно с инструкциями перед началом захвата
         info_message = (
             "Программа работает в режиме без анимации.\n"
             "После нажатия 'Понятно', программа ожидает три клика:\n"
@@ -168,14 +182,19 @@ class NoAnimationApp:
         )
         InfoDialog(info_message, show_button=True).exec_()
 
-        with mouse.Listener(on_click=self.click_positions.on_click) as listener:
+        with mouse.Listener(
+            on_click=self.click_positions.on_click
+                ) as listener:
             listener.join()
 
         pos1, pos2, pos3 = self.click_positions.positions
         x1, y1 = pos1
         x2, y2 = pos2
 
-        logger.info(f"Координаты скриншота - {pos1}, {pos2}. Координаты перемотки слайда - {pos3}")
+        logger.info(
+            f"Координаты скриншота - {pos1}, {pos2}. \
+                Координаты перемотки слайда - {pos3}"
+                )
 
         slide_count_dialog = SlideCountDialog()
         if slide_count_dialog.exec_():
@@ -193,10 +212,13 @@ class NoAnimationApp:
                 screenshot.save(screenshot_path)
 
                 doc.add_picture(screenshot_path, width=Cm(21), height=Cm(13))
-                logger.info(f"Слайд {i + 1} добавлен в файл")
+                logger.info(
+                    f"Слайд {i + 1} добавлен в файл"
+                    )
                 os.remove(screenshot_path)
 
-                pyautogui.click(x=pos3[0], y=pos3[1])  # Клик для перехода к следующему слайду
+                # Клик для перехода к следующему слайду
+                pyautogui.click(x=pos3[0], y=pos3[1])
                 time.sleep(0.2)  # Пауза между скриншотами
 
             file_path, _ = QtWidgets.QFileDialog.getSaveFileName(

@@ -16,7 +16,7 @@ class DocumentHandler:
             word = win32com.client.Dispatch("Word.Application")
             try:
                 doc_word = word.Documents.Open(os.path.abspath(temp_docx_path))
-                doc_word.SaveAs(os.path.abspath(file_path), FileFormat=17)  # 17 - PDF
+                doc_word.SaveAs(os.path.abspath(file_path), FileFormat=17)
                 doc_word.Close()
                 logger.info(f"Документ сохранен как PDF: {file_path}")
             except Exception as e:
